@@ -1,4 +1,4 @@
-import { tinycolor, TinyColor } from '@ctrl/tinycolor';
+import { TinyColor } from '@ctrl/tinycolor';
 import { computeDomain } from 'custom-card-helpers';
 import copy from 'fast-copy';
 import { Domain, SliderConfig, SliderConfigDefault, SliderConfigDefaultDomain } from './types';
@@ -31,11 +31,11 @@ export function getLightColorBasedOnTemperature(current: number, min: number, ma
   const middle = new TinyColor('white');
   const mixAmount = ((current - min) / (max - min)) * 100;
   if (mixAmount < 50) {
-    return tinycolor(low)
+    return low
       .mix(middle, mixAmount * 2)
       .toRgbString();
   } else {
-    return tinycolor(middle)
+    return middle
       .mix(high, (mixAmount - 50) * 2)
       .toRgbString();
   }
@@ -45,9 +45,9 @@ export function getLightColorBasedOnTemperature(current: number, min: number, ma
 }
 
 export function percentageToValue(percent: number, min: number, max: number): number {
-  return Math.floor(
-    (percent * (max - min) / 100 + min)
-  )
+  const value = (percent * (max - min) / 100 + min);
+  // Round to 2 decimal places to handle floating point precision
+  return Math.round(value * 100) / 100;
 }
 
 export const normalize = (value: number, min: number, max: number): number => {

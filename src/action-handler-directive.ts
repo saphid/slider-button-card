@@ -3,8 +3,9 @@ import { directive, PropertyPart } from 'lit-html';
 import { ActionHandlerDetail, ActionHandlerOptions } from 'custom-card-helpers/dist/types';
 import { fireEvent } from 'custom-card-helpers';
 
-const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0;
+const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 interface ActionHandler extends HTMLElement {
   holdTime: number;
   bind(element: Element, options): void;
@@ -19,6 +20,7 @@ declare global {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 class ActionHandler extends HTMLElement implements ActionHandler {
   public holdTime = 500;
 

@@ -23,6 +23,10 @@ export class ClimateController extends Controller {
   }
 
   get _step(): number {
+    // Prioritize config step over entity step for climate entities
+    if (this._config.slider?.step !== undefined) {
+      return this._config.slider.step;
+    }
     return this.stateObj.attributes?.target_temp_step || 1;
   }
 

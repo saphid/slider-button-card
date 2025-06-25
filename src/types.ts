@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/camelcase */
+/* eslint-disable @typescript-eslint/naming-convention */
 import { ActionConfig, LovelaceCard, LovelaceCardConfig, LovelaceCardEditor } from 'custom-card-helpers';
 
 declare global {
@@ -50,6 +50,7 @@ export interface SliderConfig {
   toggle_on_click?: boolean;
   invert?: boolean;
   force_square: boolean;
+  color?: string;
 }
 
 export enum ActionButtonMode {

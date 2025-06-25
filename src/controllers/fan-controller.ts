@@ -7,9 +7,13 @@ export class FanController extends Controller {
   _invert = false;
 
   get _value(): number {
-    return this.isUnavailable || STATES_OFF.includes(this.state)
+    const result = this.isUnavailable || STATES_OFF.includes(this.state)
       ? 0
       : this.hasSlider ? this.stateObj.attributes.percentage : 1;
+
+
+
+    return result;
   }
 
   set _value(value) {
@@ -29,7 +33,7 @@ export class FanController extends Controller {
   }
 
   get _step(): number {
-    return this.stateObj.attributes.percentage_step;
+    return this.stateObj.attributes.percentage_step || 1;
   }
 
   get label(): string {
@@ -44,7 +48,7 @@ export class FanController extends Controller {
   }
 
   get hasSlider(): boolean {
-    return 'speed' in this.stateObj.attributes;
+    return 'percentage' in this.stateObj.attributes || 'speed' in this.stateObj.attributes;
   }
 
   get _max(): number {

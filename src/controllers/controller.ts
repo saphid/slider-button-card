@@ -55,7 +55,9 @@ export abstract class Controller {
 
   get value(): number {
     if (this._value) {
-      return Math.round(this._value / this.step) * this.step;
+      const rounded = Math.round(this._value / this.step) * this.step;
+      // Handle decimal precision for steps like 0.5
+      return Math.round(rounded * 100) / 100;
     }
     return this.min;
   }
@@ -72,7 +74,9 @@ export abstract class Controller {
       return 0;
     }
     if (this._targetValue) {
-      return Math.round(this._targetValue / this.step) * this.step;
+      const rounded = Math.round(this._targetValue / this.step) * this.step;
+      // Handle decimal precision for steps like 0.5
+      return Math.round(rounded * 100) / 100;
     }
     if (this.value) {
       return this.value;
@@ -144,9 +148,10 @@ export abstract class Controller {
   }
 
   get percentage(): number {
-    return Math.round(
+    const result = Math.round(
       ((this.targetValue - (this.invert ? this.max : this.min)) * 100) / (this.max - this.min) * (this.invert ? -1 : 1)
     );
+    return result;
   }
 
   get valueFromPercentage(): number {
@@ -230,7 +235,9 @@ export abstract class Controller {
         return this._sliderPrevColor;
       }
     }
-    return 'inherit';
+
+    // Return a proper default color instead of 'inherit'
+    return this._config.slider?.color || 'var(--primary-color, #03a9f4)';
   }
 
   moveSlider(event: any, {left, top, width, height}): number {
@@ -238,7 +245,7 @@ export abstract class Controller {
     percentage = this.applyStep(percentage);
     percentage = normalize(percentage, 0, 100);
     if (!this.isValuePercentage) {
-      percentage = percentageToValue(percentage, this.min, this.max);
+      return percentageToValue(percentage, this.min, this.max);
     }
     return percentage;
   }
@@ -282,7 +289,9 @@ export abstract class Controller {
   }
 
   applyStep(value: number): number {
-    return  Math.round(value / this.step) * this.step;
+    const stepped = Math.round(value / this.step) * this.step;
+    // Handle decimal precision for steps like 0.5
+    return Math.round(stepped * 100) / 100;
   }
 
   log(name = '', value: string | number | object = ''): void {

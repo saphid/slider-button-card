@@ -58,13 +58,13 @@ export class SliderButtonCard extends LitElement implements LovelaceCard {
     return {
       entity: entity,
       slider: getSliderDefaultForEntity(entity),
-      // eslint-disable-next-line @typescript-eslint/camelcase
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       show_name: true,
-      // eslint-disable-next-line @typescript-eslint/camelcase
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       show_state: true,
       compact: false,
       icon: copy(IconConfigDefault),
-      // eslint-disable-next-line @typescript-eslint/camelcase
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       action_button: copy(ActionButtonConfigDefault),
     };
   }
@@ -84,12 +84,12 @@ export class SliderButtonCard extends LitElement implements LovelaceCard {
     this.config = {
       slider: getSliderDefaultForEntity(config.entity),
       icon: copy(IconConfigDefault),
-      // eslint-disable-next-line @typescript-eslint/camelcase
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       show_name: true,
-      // eslint-disable-next-line @typescript-eslint/camelcase
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       show_state: true,
       compact: false,
-      // eslint-disable-next-line @typescript-eslint/camelcase
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       action_button: copy(ActionButtonConfigDefault),
       debug: false,
       ...config
@@ -139,6 +139,7 @@ export class SliderButtonCard extends LitElement implements LovelaceCard {
     if (!this.ctrl.stateObj) {
       return this._showError(localize('common.show_error'));
     }
+
     return html`
       <ha-card
         tabindex="0"
@@ -298,7 +299,7 @@ export class SliderButtonCard extends LitElement implements LovelaceCard {
 
   private _toggle(): void {
     if (this.hass && this.config) {
-      // eslint-disable-next-line @typescript-eslint/camelcase
+      // eslint-disable-next-line @typescript-eslint/naming-convention
       handleAction(this, this.hass, {tap_action: {action: 'toggle'}, entity: this.config.entity}, 'tap');
     }
   }
@@ -447,15 +448,15 @@ export class SliderButtonCard extends LitElement implements LovelaceCard {
       /*--label-color-on: var(--primary-text-color, white);*/
       /*--label-color-off: var(--primary-text-color, white);*/
       --icon-filter: brightness(100%);
-      --icon-color: var(--state-icon-color);
+      --icon-color: var(--paper-item-icon-color);
       --icon-rotate-speed: 0s;
       /*--state-color-on: #BAC0C6; */
       /*--state-color-off: var(--disabled-text-color);*/
       /*--state-text-shadow: rgb(255 255 255 / 10%) -1px -1px 1px, rgb(0 0 0 / 50%) 1px 1px 1px;*/
       --btn-bg-color-off: rgba(43,55,78,1);
       --btn-bg-color-on: #20293c;
-      /*--action-icon-color-on: var(--state-icon-color, black);*/
-      /*--action-icon-color-off: var(--state-icon-color, black);*/
+      /*--action-icon-color-on: var(--paper-item-icon-color, black);*/
+      /*--action-icon-color-off: var(--paper-item-icon-color, black);*/      
       /*--action-spinner-color: var(--label-badge-text-color, white);*/
     }
     /* --- BUTTON --- */
@@ -744,7 +745,7 @@ export class SliderButtonCard extends LitElement implements LovelaceCard {
       float: right;
       width: var(--mdc-icon-size, 24px);
       height: var(--mdc-icon-size, 24px);
-      color: var(--action-icon-color-on, var(--state-icon-color, black));
+      color: var(--action-icon-color-on, var(--paper-item-icon-color, black));
       cursor: pointer;
       outline: none;
       -webkit-tap-highlight-color: transparent;
@@ -755,7 +756,7 @@ export class SliderButtonCard extends LitElement implements LovelaceCard {
       top: 5px;
     }    
     .off .action {
-      color: var(--action-icon-color-off, var(--state-icon-color, black));
+      color: var(--action-icon-color-off, var(--paper-item-icon-color, black));
     }
     .unavailable .action {
       color: var(--disabled-text-color);
