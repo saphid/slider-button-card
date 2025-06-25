@@ -17,6 +17,7 @@ export interface SliderButtonCardConfig extends LovelaceCardConfig {
   icon?: IconConfig;
   action_button?: ActionButtonConfig;
   slider?: SliderConfig;
+  additional_entity?: AdditionalEntityConfig;
   theme?: string;
   debug?: boolean;
   compact?: boolean;
@@ -53,6 +54,15 @@ export interface SliderConfig {
   color?: string;
 }
 
+export interface AdditionalEntityConfig {
+  entity?: string;
+  attribute?: string;
+  prefix?: string;
+  suffix?: string;
+  show?: boolean;
+  position?: AdditionalEntityPosition;
+}
+
 export enum ActionButtonMode {
   TOGGLE = 'toggle',
   CUSTOM = 'custom',
@@ -70,6 +80,14 @@ export enum SliderBackground {
   TRIANGLE = 'triangle',
   STRIPED = 'striped',
   CUSTOM = 'custom',
+}
+
+export enum AdditionalEntityPosition {
+  ABOVE_STATE = 'above_state',
+  BELOW_STATE = 'below_state',
+  INLINE_STATE = 'inline_state',
+  RIGHT_TOP = 'right_top',
+  RIGHT_BOTTOM = 'right_bottom',
 }
 
 export enum Domain {
@@ -99,6 +117,14 @@ export const IconConfigDefault: IconConfig = {
   tap_action: {
     action: 'more-info'
   },
+};
+
+export const AdditionalEntityConfigDefault: AdditionalEntityConfig = {
+  show: false,
+  position: AdditionalEntityPosition.BELOW_STATE,
+  attribute: 'state',
+  prefix: '',
+  suffix: '',
 };
 
 export const SliderConfigDefault: SliderConfig = {

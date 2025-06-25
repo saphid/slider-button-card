@@ -37,6 +37,22 @@
       "show_button": "Show button?",
       "show_spinner": "Show spinner?",
       "tap_action": "Tap action"
+    },
+    "additional_entity": {
+      "title": "Additional Entity",
+      "show": "Show additional entity?",
+      "entity": "Additional Entity",
+      "attribute": "Attribute (default: state)",
+      "prefix": "Prefix",
+      "suffix": "Suffix",
+      "position": "Position",
+      "positions": {
+        "above_state": "Above state",
+        "below_state": "Below state",
+        "inline_state": "Inline with state",
+        "right_top": "Right side (top)",
+        "right_bottom": "Right side (bottom)"
+      }
     }
   },
   "state": {
@@ -58,5 +74,10 @@
   "mode": {
     "toggle": "Toggle",
     "custom": "Custom"
+  },
+  "additional_entity_position": {
+    "above_state": "Above state",
+    "below_state": "Below state",
+    "inline_state": "Inline with state"
   }
 }

@@ -19,6 +19,7 @@ A button card with integrated slider for `light, switch, fan, cover, input_boole
         - [Icon options](#icon-options)
         - [Slider options](#slider-options)
         - [Action button options](#action-button-options)
+        - [Additional entity options](#additional-entity-options)
         - [Tap action](#action-options)
     - [Styles](#styles)
 - [Examples](#examples)
@@ -28,6 +29,7 @@ A button card with integrated slider for `light, switch, fan, cover, input_boole
         - [Icon](#icon)
         - [Action button](#action-button)
         - [Slider](#slider)
+        - [Additional Entity](#additional-entity)
     - [Full examples](#full-examples)
         - [Fan](#fan)
         - [Switch](#switch)
@@ -79,6 +81,7 @@ Slider Button Card supports Lovelace's Visual Editor.
 | icon        | object  | **Optional** |  [Icon options](#icon-options)                      |  |
 | slider        | object  | **Optional** | [Slider options](#slider-options)                      |  |
 | action_button        | object  | **Optional** | [Action button options](#action-button-options)                     |  |
+| additional_entity        | object  | **Optional** | [Additional entity options](#additional-entity-options)                     |  |
 
 ### Icon Options
 
@@ -127,6 +130,17 @@ Cover:
 | icon        | string | **Optional** | Icon when mode is `custom`  | `mdi:power`             |
 | show_spinner        | boolean | **Optional** | Show spinner when mode is `custom`  | `true`             |
 | tap_action        | object  | **Optional** | [Action](#action-options) to take on tap                       | `action: toggle` |
+
+### Additional Entity Options
+
+| Name              | Type    | Requirement  | Description                                 | Default             |
+| ----------------- | ------- | ------------ | ------------------------------------------- | ------------------- |
+| show              | boolean | **Optional** | Show additional entity text                 | `false`             |
+| entity            | string  | **Optional** | Entity ID to get additional information from |                   |
+| attribute         | string  | **Optional** | Attribute to display from the additional entity | `state`         |
+| prefix            | string  | **Optional** | Text to show before the additional entity value |               |
+| suffix            | string  | **Optional** | Text to show after the additional entity value |                |
+| position          | string  | **Optional** | Position `above_state, below_state, inline_state, right_top, right_bottom` | `below_state` |
 
 ### Action Options
 
@@ -408,12 +422,99 @@ slider:
   use_state_color: true
   show_track: true
   force_square: true
-```  
+```
 </td>
 </tr>
 </table>
 
+#### Additional Entity
 
+Display information from a secondary entity alongside the main entity. Perfect for showing temperature on a fan card, humidity on a light card, or power consumption on any device.
+
+<table>
+<tr>
+<td></td>
+<td>Below state</td>
+<td>Inline with state</td>
+<td>Above state</td>
+<td>Right top</td>
+<td>Right bottom</td>
+</tr>
+<tr>
+<td><img src="https://raw.githubusercontent.com/mattieha/slider-button-card/main/assets/examples/additional-entity-below.png">
+</td>
+<td valign="top">
+
+```yaml
+type: custom:slider-button-card
+entity: fan.lounge_fan
+name: Lounge Fan
+additional_entity:
+  show: true
+  entity: sensor.lounge_temperature
+  prefix: "Temp: "
+  suffix: "°C"
+  position: below_state
+```
+</td>
+<td valign="top">
+
+```yaml
+type: custom:slider-button-card
+entity: light.bedroom_light
+name: Bedroom Light
+additional_entity:
+  show: true
+  entity: sensor.bedroom_humidity
+  prefix: "Humidity: "
+  suffix: "%"
+  position: inline_state
+```
+</td>
+<td valign="top">
+
+```yaml
+type: custom:slider-button-card
+entity: climate.living_room
+name: Living Room AC
+additional_entity:
+  show: true
+  entity: sensor.outdoor_temperature
+  prefix: "Outside: "
+  suffix: "°C"
+  position: above_state
+```
+</td>
+<td valign="top">
+
+```yaml
+type: custom:slider-button-card
+entity: light.office_light
+name: Office Light
+additional_entity:
+  show: true
+  entity: sensor.office_humidity
+  prefix: ""
+  suffix: "%"
+  position: right_top
+```
+</td>
+<td valign="top">
+
+```yaml
+type: custom:slider-button-card
+entity: fan.bedroom_fan
+name: Bedroom Fan
+additional_entity:
+  show: true
+  entity: sensor.bedroom_temperature
+  prefix: ""
+  suffix: "°C"
+  position: right_bottom
+```
+</td>
+</tr>
+</table>
 
 ### Full examples
 #### Fan

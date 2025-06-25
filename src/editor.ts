@@ -13,7 +13,7 @@ import {
 } from 'lit-element';
 import { HomeAssistant, fireEvent, LovelaceCardEditor, stateIcon, computeDomain } from 'custom-card-helpers';
 import { localize } from './localize/localize';
-import { ActionButtonConfig, ActionButtonConfigDefault, ActionButtonMode, Domain, IconConfig, IconConfigDefault, SliderBackground, SliderButtonCardConfig, SliderConfig, SliderConfigDefault, SliderDirections } from './types';
+import { ActionButtonConfig, ActionButtonConfigDefault, ActionButtonMode, AdditionalEntityConfig, AdditionalEntityConfigDefault, AdditionalEntityPosition, Domain, IconConfig, IconConfigDefault, SliderBackground, SliderButtonCardConfig, SliderConfig, SliderConfigDefault, SliderDirections } from './types';
 import { applyPatch, getEnumValues, getSliderDefaultForEntity } from './utils';
 
 @customElement('slider-button-card-editor')
@@ -25,6 +25,7 @@ export class SliderButtonCardEditor extends LitElement implements LovelaceCardEd
   private directions = getEnumValues(SliderDirections);
   private backgrounds = getEnumValues(SliderBackground);
   private actionModes = getEnumValues(ActionButtonMode);
+  private additionalEntityPositions = getEnumValues(AdditionalEntityPosition);
   private actions = [
     "more-info",
     "toggle",
@@ -82,10 +83,17 @@ export class SliderButtonCardEditor extends LitElement implements LovelaceCardEd
     return this._config?.action_button || ActionButtonConfigDefault;
   }
 
+  get _additional_entity(): AdditionalEntityConfig {
+    return this._config?.additional_entity || AdditionalEntityConfigDefault;
+  }
+
   protected render(): TemplateResult | void {
     if (!this.hass || !this._helpers) {
       return html``;
     }
+
+    // Debug: Log editor rendering
+    console.log('🎛️ Editor rendering with additional entity config:', this._additional_entity);
     // The climate more-info has ha-switch and paper-dropdown-menu elements that are lazy loaded unless explicitly done here
     this._helpers.importMoreInfoControl('climate');
 
@@ -308,6 +316,68 @@ export class SliderButtonCardEditor extends LitElement implements LovelaceCardEd
                 `
                 :
                 ''}
+            </div>
+          </div>
+
+          <div class="tab">
+            <input type="checkbox" id="additional_entity" class="tab-checkbox">
+            <label class="tab-label" for="additional_entity">${localize('tabs.additional_entity.title')}</label>
+            <div class="tab-content">
+              <ha-formfield .label=${localize('tabs.additional_entity.show')}>
+                <ha-switch
+                  .checked=${this._additional_entity.show}
+                  .configValue=${'additional_entity.show'}
+                  @change=${this._valueChanged}
+                ></ha-switch>
+              </ha-formfield>
+
+              ${this._additional_entity.show ? html`
+                <ha-entity-picker
+                  .hass=${this.hass}
+                  .value=${this._additional_entity.entity}
+                  .configValue=${'additional_entity.entity'}
+                  label="${localize('tabs.additional_entity.entity')}"
+                  allow-custom-entity
+                  @value-changed=${this._valueChanged}
+                ></ha-entity-picker>
+
+                <paper-input
+                  label="${localize('tabs.additional_entity.attribute')}"
+                  .value=${this._additional_entity.attribute}
+                  .configValue=${'additional_entity.attribute'}
+                  @value-changed=${this._valueChanged}
+                ></paper-input>
+
+                <div class="side-by-side">
+                  <paper-input
+                    label="${localize('tabs.additional_entity.prefix')}"
+                    .value=${this._additional_entity.prefix}
+                    .configValue=${'additional_entity.prefix'}
+                    @value-changed=${this._valueChanged}
+                  ></paper-input>
+                  <paper-input
+                    label="${localize('tabs.additional_entity.suffix')}"
+                    .value=${this._additional_entity.suffix}
+                    .configValue=${'additional_entity.suffix'}
+                    @value-changed=${this._valueChanged}
+                  ></paper-input>
+                </div>
+
+                <paper-dropdown-menu
+                  label="${localize('tabs.additional_entity.position')}"
+                  .configValue=${'additional_entity.position'}
+                  @value-changed=${this._valueChangedSelect}
+                >
+                  <paper-listbox
+                    slot="dropdown-content"
+                    .selected=${this.additionalEntityPositions.indexOf(this._additional_entity.position || AdditionalEntityPosition.BELOW_STATE)}
+                  >
+                    ${this.additionalEntityPositions.map(position => html`
+                      <paper-item .itemValue=${position}>${localize(`tabs.additional_entity.positions.${position}`)}</paper-item>
+                    `)}
+                  </paper-listbox>
+                </paper-dropdown-menu>
+              ` : ''}
             </div>
           </div>
         </div>

@@ -13,7 +13,7 @@ import './editor';
 import { localize } from './localize/localize';
 
 import type { SliderButtonCardConfig } from './types';
-import { ActionButtonConfigDefault, ActionButtonMode, IconConfigDefault } from './types';
+import { ActionButtonConfigDefault, ActionButtonMode, AdditionalEntityConfigDefault, AdditionalEntityPosition, IconConfigDefault } from './types';
 import { getSliderDefaultForEntity } from './utils';
 
 /* eslint no-console: 0 */
@@ -22,7 +22,14 @@ console.info(
   'background-color: #555;color: #fff;padding: 3px 2px 3px 3px;border: 1px solid #555;border-radius: 3px 0 0 3px;font-family: Roboto,Verdana,Geneva,sans-serif;text-shadow: 0 1px 0 rgba(1, 1, 1, 0.3)',
   'background-color: transparent;color: #555;padding: 3px 3px 3px 2px;border: 1px solid #555; border-radius: 0 3px 3px 0;font-family: Roboto,Verdana,Geneva,sans-serif',
   'background-color: transparent'
+);
 
+// Debug: Additional Entity Feature
+console.info(
+  `%c  SLIDER-BUTTON-CARD %c Additional Entity Feature Loaded (v${CARD_VERSION}) %c`,
+  'background-color: #4CAF50;color: #fff;padding: 3px 2px 3px 3px;border: 1px solid #4CAF50;border-radius: 3px 0 0 3px;font-family: Roboto,Verdana,Geneva,sans-serif;',
+  'background-color: transparent;color: #4CAF50;padding: 3px 3px 3px 2px;border: 1px solid #4CAF50; border-radius: 0 3px 3px 0;font-family: Roboto,Verdana,Geneva,sans-serif',
+  'background-color: transparent'
 );
 
 // This puts your card into the UI card picker dialog
@@ -46,6 +53,8 @@ export class SliderButtonCard extends LitElement implements LovelaceCard {
   private changed = false;
   private ctrl!: Controller;
   private actionTimeout;
+  private _additionalEntityValueCache: string = '';
+  private _additionalEntityLastState: any = null;
 
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
     return document.createElement('slider-button-card-editor');
@@ -91,10 +100,30 @@ export class SliderButtonCard extends LitElement implements LovelaceCard {
       compact: false,
       // eslint-disable-next-line @typescript-eslint/naming-convention
       action_button: copy(ActionButtonConfigDefault),
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      additional_entity: copy(AdditionalEntityConfigDefault),
       debug: false,
       ...config
     };
     this.ctrl = ControllerFactory.getInstance(this.config);
+
+    // Clear additional entity cache when config changes
+    this._additionalEntityValueCache = '';
+    this._additionalEntityLastState = null;
+
+    // Debug: Log additional entity configuration
+    if (this.config.additional_entity) {
+      console.log('🔧 Additional Entity Config:', {
+        show: this.config.additional_entity.show,
+        entity: this.config.additional_entity.entity,
+        attribute: this.config.additional_entity.attribute,
+        prefix: this.config.additional_entity.prefix,
+        suffix: this.config.additional_entity.suffix,
+        position: this.config.additional_entity.position
+      });
+    } else {
+      console.log('🔧 No additional entity configuration found');
+    }
   }
 
   protected shouldUpdate(changedProps: PropertyValues): boolean {
@@ -110,6 +139,21 @@ export class SliderButtonCard extends LitElement implements LovelaceCard {
       this.ctrl.log('shouldUpdate', 'forced true');
       return true;
     }
+
+    // Check if additional entity has changed
+    if (this.config.additional_entity?.entity && oldHass && this.hass.states) {
+      try {
+        const oldAdditionalState = oldHass.states[this.config.additional_entity.entity];
+        const newAdditionalState = this.hass.states[this.config.additional_entity.entity];
+        if (oldAdditionalState !== newAdditionalState) {
+          this.ctrl.log('shouldUpdate', 'additional entity changed');
+          return true;
+        }
+      } catch (error) {
+        this.ctrl.log('shouldUpdate additional entity error', String(error));
+      }
+    }
+
     return hasConfigOrEntityChanged(this, changedProps, false);
   }
 
@@ -132,6 +176,140 @@ export class SliderButtonCard extends LitElement implements LovelaceCard {
 
   protected firstUpdated(_changedProperties: PropertyValues): void {
     super.firstUpdated(_changedProperties);
+  }
+
+  private getAdditionalEntityState(): any {
+    if (!this.config.additional_entity?.entity) {
+      return null;
+    }
+
+    if (!this.hass || !this.hass.states) {
+      return null;
+    }
+
+    return this.hass.states[this.config.additional_entity.entity] || null;
+  }
+
+  private getAdditionalEntityValue(): string {
+    const additionalState = this.getAdditionalEntityState();
+    if (!additionalState) {
+      this._additionalEntityValueCache = '';
+      this._additionalEntityLastState = null;
+      return '';
+    }
+
+    // Use cache if state hasn't changed
+    if (this._additionalEntityLastState === additionalState) {
+      return this._additionalEntityValueCache;
+    }
+
+    const attribute = this.config.additional_entity?.attribute || 'state';
+    let value = '';
+
+    try {
+      if (attribute === 'state') {
+        value = additionalState.state;
+      } else {
+        if (additionalState.attributes && typeof additionalState.attributes === 'object') {
+          value = additionalState.attributes[attribute];
+        }
+      }
+
+      // Handle null, undefined, or non-string values
+      if (value === null || value === undefined) {
+        this._additionalEntityValueCache = '';
+        this._additionalEntityLastState = additionalState;
+        return '';
+      }
+
+      // Convert to string if it's not already
+      value = String(value);
+
+    } catch (error) {
+      this.ctrl?.log('Additional entity error', String(error));
+      this._additionalEntityValueCache = '';
+      this._additionalEntityLastState = additionalState;
+      return '';
+    }
+
+    const prefix = this.config.additional_entity?.prefix || '';
+    const suffix = this.config.additional_entity?.suffix || '';
+
+    this._additionalEntityValueCache = `${prefix}${value}${suffix}`;
+    this._additionalEntityLastState = additionalState;
+
+    return this._additionalEntityValueCache;
+  }
+
+  private isAdditionalEntityAvailable(): boolean {
+    const additionalState = this.getAdditionalEntityState();
+    return !!(additionalState &&
+              additionalState.state !== 'unavailable' &&
+              additionalState.state !== 'unknown' &&
+              additionalState.state !== null &&
+              additionalState.state !== undefined);
+  }
+
+  private shouldShowAdditionalEntity(): boolean {
+    const shouldShow = !!(this.config.additional_entity?.show &&
+                          this.config.additional_entity?.entity &&
+                          this.isAdditionalEntityAvailable());
+
+    console.log('🔍 shouldShowAdditionalEntity:', {
+      show: this.config.additional_entity?.show,
+      entity: this.config.additional_entity?.entity,
+      isAvailable: this.isAdditionalEntityAvailable(),
+      result: shouldShow
+    });
+
+    return shouldShow;
+  }
+
+  private renderAdditionalEntity(): TemplateResult {
+    if (!this.shouldShowAdditionalEntity()) {
+      console.log('🚫 Not rendering additional entity - shouldShow returned false');
+      return html``;
+    }
+
+    const additionalValue = this.getAdditionalEntityValue();
+    console.log('📝 Additional entity value:', additionalValue);
+
+    if (!additionalValue) {
+      console.log('🚫 Not rendering additional entity - empty value');
+      return html``;
+    }
+
+    console.log('✅ Rendering additional entity with value:', additionalValue);
+    return html`
+      <div class="additional-entity">
+        ${additionalValue}
+      </div>
+    `;
+  }
+
+  private renderAdditionalEntityRight(): TemplateResult {
+    if (!this.shouldShowAdditionalEntity()) {
+      console.log('🚫 Not rendering right additional entity - shouldShow returned false');
+      return html``;
+    }
+
+    const additionalValue = this.getAdditionalEntityValue();
+    console.log('📝 Right additional entity value:', additionalValue);
+
+    if (!additionalValue) {
+      console.log('🚫 Not rendering right additional entity - empty value');
+      return html``;
+    }
+
+    const position = this.config.additional_entity?.position;
+    const isTop = position === AdditionalEntityPosition.RIGHT_TOP;
+
+    console.log('✅ Rendering right additional entity with value:', additionalValue, 'position:', position);
+    return html`
+      <div class="additional-entity-right ${isTop ? 'top' : 'bottom'}">
+        ${additionalValue}
+      </div>
+    `;
   }
 
   protected render(): TemplateResult | void {
@@ -181,7 +359,14 @@ export class SliderButtonCard extends LitElement implements LovelaceCard {
   }
 
   private renderText(): TemplateResult {
-    if (!this.config.show_name && !this.config.show_state) {
+    console.log('🎨 renderText called:', {
+      show_name: this.config.show_name,
+      show_state: this.config.show_state,
+      shouldShowAdditionalEntity: this.shouldShowAdditionalEntity()
+    });
+
+    if (!this.config.show_name && !this.config.show_state && !this.shouldShowAdditionalEntity()) {
+      console.log('🚫 Not rendering text - all conditions false');
       return html``;
     }
     return html`
@@ -191,6 +376,9 @@ export class SliderButtonCard extends LitElement implements LovelaceCard {
                 <div class="name">${this.ctrl.name}</div>
                 `
                 : ''}
+            ${this.shouldShowAdditionalEntity() && this.config.additional_entity?.position === AdditionalEntityPosition.ABOVE_STATE
+              ? this.renderAdditionalEntity()
+              : ''}
             ${this.config.show_state
               ? html`
                 <div class="state">
@@ -198,12 +386,20 @@ export class SliderButtonCard extends LitElement implements LovelaceCard {
                   ? html`
                     ${this.hass.localize('state.default.unavailable')}
                     ` : html`
-                    ${this.ctrl.label}
+                    ${this.shouldShowAdditionalEntity() && this.config.additional_entity?.position === AdditionalEntityPosition.INLINE_STATE
+                      ? html`${this.ctrl.label} ${this.getAdditionalEntityValue()}`
+                      : html`${this.ctrl.label}`}
                   `}
                 </div>
                 `
                 : ''}
+            ${this.shouldShowAdditionalEntity() && this.config.additional_entity?.position === AdditionalEntityPosition.BELOW_STATE
+              ? this.renderAdditionalEntity()
+              : ''}
           </div>
+          ${this.shouldShowAdditionalEntity() && (this.config.additional_entity?.position === AdditionalEntityPosition.RIGHT_TOP || this.config.additional_entity?.position === AdditionalEntityPosition.RIGHT_BOTTOM)
+            ? this.renderAdditionalEntityRight()
+            : ''}
     `;
   }
 
@@ -585,9 +781,75 @@ export class SliderButtonCard extends LitElement implements LovelaceCard {
       max-width: calc(100% - 0em);
       overflow: hidden;
     }
-    
-    
-    /* --- SLIDER --- */    
+
+    /* --- ADDITIONAL ENTITY --- */
+
+    .additional-entity {
+      color: var(--additional-entity-color, var(--secondary-text-color, #8c96a5));
+      font-size: 0.9rem;
+      line-height: 1.2rem;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+      text-shadow: var(--additional-entity-text-shadow, none);
+      opacity: 0.8;
+    }
+    .off .additional-entity {
+      color: var(--additional-entity-color-off, var(--disabled-text-color));
+    }
+    .unavailable .additional-entity {
+      color: var(--disabled-text-color);
+    }
+    .compact .additional-entity {
+      display: inline-block;
+      font-size: 0.8rem;
+      line-height: 1rem;
+      max-width: calc(100% - 0em);
+      overflow: hidden;
+    }
+
+    /* --- ADDITIONAL ENTITY RIGHT --- */
+
+    .additional-entity-right {
+      position: absolute;
+      right: 0.8rem;
+      color: var(--additional-entity-color, var(--secondary-text-color, #8c96a5));
+      font-size: 0.9rem;
+      line-height: 1.2rem;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+      text-shadow: var(--additional-entity-text-shadow, none);
+      opacity: 0.8;
+      pointer-events: none;
+      user-select: none;
+    }
+    .additional-entity-right.top {
+      top: 0.8rem;
+    }
+    .additional-entity-right.bottom {
+      bottom: 0.8rem;
+    }
+    .off .additional-entity-right {
+      color: var(--additional-entity-color-off, var(--disabled-text-color));
+    }
+    .unavailable .additional-entity-right {
+      color: var(--disabled-text-color);
+    }
+    .compact .additional-entity-right {
+      font-size: 0.8rem;
+      line-height: 1rem;
+      right: 0.5rem;
+    }
+    .compact .additional-entity-right.top {
+      top: 0.5rem;
+    }
+    .compact .additional-entity-right.bottom {
+      bottom: 0.5rem;
+    }
+
+
+    /* --- SLIDER --- */
     
     .slider {
       position: absolute;      
