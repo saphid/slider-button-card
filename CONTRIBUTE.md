@@ -36,4 +36,4 @@ Add your translation to the `README.md` under the languages section:
 ```
 
 ### Create a PR
-Commit your changes and create a [Pull Request](https://github.com/mattieha/slider-butt gon-card/pulls)
+Commit your changes and create a [Pull Request](https://github.com/mattieha/slider-button-card/pulls)
